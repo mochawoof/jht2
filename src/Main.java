@@ -28,6 +28,8 @@ class Main {
     public static JPanel editorPanel;
 
     public static JToolBar toolBar;
+    public static JButton fileButton;
+    public static JComboBox previewFormat;
 
     public static void main(String[] args) {
         try {
@@ -52,6 +54,7 @@ class Main {
 
         table = new JTable();
         table.setCellSelectionEnabled(true);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         tableScrollPane = new JScrollPane(table);
         tableScrollPane.getVerticalScrollBar().setUnitIncrement(20);
@@ -63,9 +66,33 @@ class Main {
 
         previewTable = new JTable();
         previewTable.setCellSelectionEnabled(true);
+        previewTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         previewTableScrollPane = new JScrollPane(previewTable);
         previewTableScrollPane.getVerticalScrollBar().setUnitIncrement(20);
         editorSplit.setTopComponent(previewTableScrollPane);
+
+        // Table events
+        ListSelectionListener tableListener = new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (table.getSelectedRow() != -1 && table.getSelectedColumn() != -1) {
+                    previewTable.setRowSelectionInterval(table.getSelectedRow(), table.getSelectedRow());
+                    previewTable.setColumnSelectionInterval(table.getSelectedColumn(), table.getSelectedColumn());
+                }
+            }
+        };
+        table.getSelectionModel().addListSelectionListener(tableListener);
+        table.getColumnModel().getSelectionModel().addListSelectionListener(tableListener);
+
+        ListSelectionListener previewTableListener = new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (previewTable.getSelectedRow() != -1 && previewTable.getSelectedColumn() != -1) {
+                    table.setRowSelectionInterval(previewTable.getSelectedRow(), previewTable.getSelectedRow());
+                    table.setColumnSelectionInterval(previewTable.getSelectedColumn(), previewTable.getSelectedColumn());
+                }
+            }
+        };
+        previewTable.getSelectionModel().addListSelectionListener(previewTableListener);
+        previewTable.getColumnModel().getSelectionModel().addListSelectionListener(previewTableListener);
 
         editorPanel = new JPanel();
         editorPanelScrollPane = new JScrollPane(editorPanel);
@@ -77,6 +104,14 @@ class Main {
         file = new File("Abcs.txt");
         load();
         render();
+
+        fileButton = new JButton(file.getName() + " (" + bytes.size() + "b)");
+        toolBar.add(fileButton);
+
+        previewFormat = new JComboBox(new String[] {"Preview ASCII", "Preview UTF-8"});
+        previewFormat.setMaximumSize(new Dimension(200, (int) previewFormat.getMaximumSize().getHeight()));
+        toolBar.add(Box.createGlue());
+        toolBar.add(previewFormat);
 
         f.setVisible(true);
     }
