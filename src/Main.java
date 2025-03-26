@@ -12,6 +12,7 @@ class Main {
     public static ArrayList<Byte> bytes = new ArrayList<Byte>();
     public static File file;
     public static int bytesPerRow = 16;
+    public static int crow = -1; public static int ccol = -1;
 
     public static JFrame f;
     public static JSplitPane split;
@@ -71,12 +72,29 @@ class Main {
         previewTableScrollPane.getVerticalScrollBar().setUnitIncrement(20);
         editorSplit.setTopComponent(previewTableScrollPane);
 
+        // Table scroll pane events
+        AdjustmentListener tableAdjListener = new AdjustmentListener() {
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                previewTableScrollPane.getVerticalScrollBar().setValue(tableScrollPane.getVerticalScrollBar().getValue());
+            }
+        };
+        tableScrollPane.getVerticalScrollBar().addAdjustmentListener(tableAdjListener);
+
+        AdjustmentListener previewTableAdjListener = new AdjustmentListener() {
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                tableScrollPane.getVerticalScrollBar().setValue(previewTableScrollPane.getVerticalScrollBar().getValue());
+            }
+        };
+        previewTableScrollPane.getVerticalScrollBar().addAdjustmentListener(previewTableAdjListener);
+
         // Table events
         ListSelectionListener tableListener = new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 if (table.getSelectedRow() != -1 && table.getSelectedColumn() != -1) {
                     previewTable.setRowSelectionInterval(table.getSelectedRow(), table.getSelectedRow());
                     previewTable.setColumnSelectionInterval(table.getSelectedColumn(), table.getSelectedColumn());
+
+                    crow = table.getSelectedRow(); ccol = table.getSelectedColumn();
                 }
             }
         };
@@ -101,17 +119,32 @@ class Main {
         toolBar = new JToolBar();
         f.add(toolBar, BorderLayout.PAGE_START);
 
+        fileButton = new JButton("");
+        fileButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser c = new JFileChooser();
+                if (c.showOpenDialog(f) == JFileChooser.APPROVE_OPTION) {
+                    file = c.getSelectedFile();
+                    load();
+                    render();
+                }
+            }
+        });
+        toolBar.add(fileButton);
+
+        previewFormat = new JComboBox(new String[] {"Preview ASCII", "Preview Int", "Preview Bin"});
+        previewFormat.setMaximumSize(new Dimension(200, (int) previewFormat.getMaximumSize().getHeight()));
+        previewFormat.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                render();
+            }
+        });
+        toolBar.add(Box.createGlue());
+        toolBar.add(previewFormat);
+
         file = new File("Abcs.txt");
         load();
         render();
-
-        fileButton = new JButton(file.getName() + " (" + bytes.size() + "b)");
-        toolBar.add(fileButton);
-
-        previewFormat = new JComboBox(new String[] {"Preview ASCII", "Preview UTF-8"});
-        previewFormat.setMaximumSize(new Dimension(200, (int) previewFormat.getMaximumSize().getHeight()));
-        toolBar.add(Box.createGlue());
-        toolBar.add(previewFormat);
 
         f.setVisible(true);
     }
@@ -122,6 +155,7 @@ class Main {
             for (byte b : Files.readAllBytes(file.toPath())) {
                 bytes.add(b);
             }
+            fileButton.setText(file.getName() + " (" + bytes.size() + "b)");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -162,12 +196,27 @@ class Main {
             int row = (int) Math.floor((double) n / bytesPerRow);
             int col = n - (row * bytesPerRow);
 
-            model.setValueAt(b, row, col);
+            model.setValueAt(String.format("%02X", (int) b), row, col);
 
-            Object pre = (char) b;
+            String format = (String) previewFormat.getSelectedItem();
+            Object pre = b;
+
+            if (format.equals("Preview ASCII")) {
+                pre = (char) b;
+            } else if (format.equals("Preview Int")) {
+                pre = (int) b;
+            } else if (format.equals("Preview Bin")) {
+                pre = Integer.toBinaryString((int) b);
+            }
+
             previewModel.setValueAt(pre, row, col);
 
             n++;
+        }
+
+        if (crow != -1 && ccol != -1) {
+            table.setRowSelectionInterval(crow, crow);
+            table.setColumnSelectionInterval(ccol, ccol);
         }
     }
 }
