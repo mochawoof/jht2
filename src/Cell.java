@@ -4,6 +4,6 @@ class Cell {
         b = by;
     }
     public String toString() {
-        return String.format("%02X", (int) b);
+        return Decimal.toHex((int) b);
     }
 }

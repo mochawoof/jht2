@@ -10,6 +10,7 @@ class Main {
     public static JSplitPane split;
     public static JTable table;
     public static DefaultTableModel model;
+    public static ListSelectionListener tableListener;
 
     public static JTable sideTable;
     public static DefaultTableModel sideModel;
@@ -39,9 +40,11 @@ class Main {
         table = new JTable();
         table.setCellSelectionEnabled(true);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getTableHeader().setReorderingAllowed(false);
         split.setLeftComponent(new JScrollPane(table));
 
         sideTable = new JTable();
+        sideTable.getTableHeader().setReorderingAllowed(false);
         split.setRightComponent(new JScrollPane(sideTable));
 
         sideModel = new DefaultTableModel() {
@@ -65,13 +68,34 @@ class Main {
 
         sideModel.addRow(new String[] {"Hex", ""});
         sideModel.addRow(new String[] {"ASCII", ""});
-        sideModel.addRow(new String[] {"UTF-8", ""});
-        sideModel.addRow(new String[] {"Unsigned 8-bit Int", ""});
-        sideModel.addRow(new String[] {"Signed 8-bit Int", ""});
+        sideModel.addRow(new String[] {"", ""});
+        sideModel.addRow(new String[] {"Uint 8", ""});
+        sideModel.addRow(new String[] {"Int 8", ""});
         
         sideTable.setModel(sideModel);
 
-        file = new File("abcs.txt");
+        tableListener = new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (table.getSelectedRow() != -1 && table.getSelectedColumn() != -1) {
+                    Cell c = (Cell) table.getValueAt(table.getSelectedRow(), table.getSelectedColumn());
+                    if (c != null) {
+                        sideModel.setValueAt(c.toString(), 0, 1);
+                        sideModel.setValueAt((char) c.b, 1, 1);
+                        sideModel.setValueAt(Integer.parseUnsignedInt(c.toString(), 16), 3, 1);
+                        sideModel.setValueAt(Integer.parseInt(c.toString(), 16), 4, 1);
+                    } else {
+                        sideModel.setValueAt("", 0, 1);
+                        sideModel.setValueAt("", 1, 1);
+                        sideModel.setValueAt("", 3, 1);
+                        sideModel.setValueAt("", 4, 1);
+                    }
+                }
+            }
+        };
+        table.getSelectionModel().addListSelectionListener(tableListener);
+        table.getColumnModel().getSelectionModel().addListSelectionListener(tableListener);
+
+        file = new File("test.bin");
         load();
         update();
 
@@ -93,7 +117,7 @@ class Main {
             }
 
             public String getColumnName(int col) {
-                return String.format("%02X", col);
+                return Decimal.toHex(col);
             }
         };
         model.setColumnCount(16);
