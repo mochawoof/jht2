@@ -7,16 +7,19 @@ import java.io.*;
 import java.nio.file.*;
 class Main {
     public static JFrame f;
+    public static JToolBar toolBar;
+    public static JButton fileButton;
     public static JSplitPane split;
     public static JTable table;
     public static DefaultTableModel model;
+    public static TableModelListener tableModelListener;
     public static ListSelectionListener tableListener;
 
     public static JTable sideTable;
     public static DefaultTableModel sideModel;
+    public static TableModelListener sideTableModelListener;
 
     public static File file;
-    public static byte[] data;
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -32,6 +35,12 @@ class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        toolBar = new JToolBar();
+        f.add(toolBar, BorderLayout.PAGE_START);
+
+        fileButton = new JButton();
+        toolBar.add(fileButton);
 
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
         split.setDividerLocation(400);
@@ -64,8 +73,14 @@ class Main {
             }
         };
         sideModel.setColumnCount(2);
+        
+        sideTableModelListener = new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
 
-        sideModel.addRow(new String[] {"Hex", ""});
+            }
+        };
+        sideModel.addTableModelListener(sideTableModelListener);
+
         sideModel.addRow(new String[] {"Oct", ""});
         sideModel.addRow(new String[] {"ASCII", ""});
         sideModel.addRow(new String[] {"Bin", ""});
@@ -76,55 +91,44 @@ class Main {
 
         tableListener = new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
-                if (table.getSelectedRow() != -1 && table.getSelectedColumn() != -1) {
-                    Cell c = (Cell) table.getValueAt(table.getSelectedRow(), table.getSelectedColumn());
-                    if (c != null) {
-                        sideModel.setValueAt(c.toString(), 0, 1);
-                        sideModel.setValueAt(Integer.toOctalString(c.b & 0xff), 1, 1);
-                        sideModel.setValueAt((char) (c.b & 0xff), 2, 1);
-                        sideModel.setValueAt(Integer.toBinaryString(c.b & 0xff), 3, 1);
-                        sideModel.setValueAt(c.b & 0xff, 4, 1);
-                        sideModel.setValueAt(c.b, 5, 1);
-                    } else {
-                        sideModel.setValueAt("", 0, 1);
-                        sideModel.setValueAt("", 1, 1);
-                        sideModel.setValueAt("", 2, 1);
-                        sideModel.setValueAt("", 3, 1);
-                        sideModel.setValueAt("", 4, 1);
-                        sideModel.setValueAt("", 5, 1);
-                    }
-                }
+
             }
         };
         table.getSelectionModel().addListSelectionListener(tableListener);
         table.getColumnModel().getSelectionModel().addListSelectionListener(tableListener);
 
+        tableModelListener = new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                
+            }
+        };
+
         file = new File("asciitable.bin");
         load();
-        update();
 
         f.setVisible(true);
     }
 
     public static void load() {
         try {
-            data = Files.readAllBytes(file.toPath());
+            fileButton.setText(file.getName());
+            byte[] data = Files.readAllBytes(file.toPath());
+            fileButton.setText(file.getName() + " (" + data.length + "b)");
+
+            update(data);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void update() {
+    public static void update(byte[] data) {
         model = new DefaultTableModel() {
-            public boolean isCellEditable(int row, int col) {
-                return false;
-            }
-
             public String getColumnName(int col) {
                 return String.format("%02X", col & 0xff);
             }
         };
         model.setColumnCount(16);
+        model.addTableModelListener(tableModelListener);
         
         for (int i = 0; i < data.length; i++) {
             if (i % 16 == 0) {
@@ -134,7 +138,7 @@ class Main {
             int row = (int) Math.floor((double) i / 16);
             int col = i - (row * 16);
 
-            model.setValueAt(new Cell(data[i], i), row, col);
+            model.setValueAt(String.format("%02X", data[i] & 0xff), row, col);
         }
 
         table.setModel(model);
