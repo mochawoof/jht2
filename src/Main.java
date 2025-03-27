@@ -25,7 +25,7 @@ class Main {
         }
 
         f = new JFrame("JHT 2");
-        f.setSize(800, 600);
+        f.setSize(600, 300);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         try {
             f.setIconImage(new ImageIcon(Main.class.getResource("icon64.png").toURI().toURL()).getImage());
@@ -34,12 +34,11 @@ class Main {
         }
 
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
-        split.setDividerLocation(600);
+        split.setDividerLocation(400);
         f.add(split, BorderLayout.CENTER);
 
         table = new JTable();
         table.setCellSelectionEnabled(true);
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getTableHeader().setReorderingAllowed(false);
         split.setLeftComponent(new JScrollPane(table));
 
@@ -67,8 +66,9 @@ class Main {
         sideModel.setColumnCount(2);
 
         sideModel.addRow(new String[] {"Hex", ""});
+        sideModel.addRow(new String[] {"Oct", ""});
         sideModel.addRow(new String[] {"ASCII", ""});
-        sideModel.addRow(new String[] {"", ""});
+        sideModel.addRow(new String[] {"Bin", ""});
         sideModel.addRow(new String[] {"Uint 8", ""});
         sideModel.addRow(new String[] {"Int 8", ""});
         
@@ -80,14 +80,18 @@ class Main {
                     Cell c = (Cell) table.getValueAt(table.getSelectedRow(), table.getSelectedColumn());
                     if (c != null) {
                         sideModel.setValueAt(c.toString(), 0, 1);
-                        sideModel.setValueAt((char) c.b, 1, 1);
-                        sideModel.setValueAt(Integer.parseUnsignedInt(c.toString(), 16), 3, 1);
-                        sideModel.setValueAt(Integer.parseInt(c.toString(), 16), 4, 1);
+                        sideModel.setValueAt(Integer.toOctalString(c.b & 0xff), 1, 1);
+                        sideModel.setValueAt((char) (c.b & 0xff), 2, 1);
+                        sideModel.setValueAt(Integer.toBinaryString(c.b & 0xff), 3, 1);
+                        sideModel.setValueAt(c.b & 0xff, 4, 1);
+                        sideModel.setValueAt(c.b, 5, 1);
                     } else {
                         sideModel.setValueAt("", 0, 1);
                         sideModel.setValueAt("", 1, 1);
+                        sideModel.setValueAt("", 2, 1);
                         sideModel.setValueAt("", 3, 1);
                         sideModel.setValueAt("", 4, 1);
+                        sideModel.setValueAt("", 5, 1);
                     }
                 }
             }
@@ -95,7 +99,7 @@ class Main {
         table.getSelectionModel().addListSelectionListener(tableListener);
         table.getColumnModel().getSelectionModel().addListSelectionListener(tableListener);
 
-        file = new File("test.bin");
+        file = new File("asciitable.bin");
         load();
         update();
 
@@ -117,7 +121,7 @@ class Main {
             }
 
             public String getColumnName(int col) {
-                return Decimal.toHex(col);
+                return String.format("%02X", col & 0xff);
             }
         };
         model.setColumnCount(16);
@@ -130,7 +134,7 @@ class Main {
             int row = (int) Math.floor((double) i / 16);
             int col = i - (row * 16);
 
-            model.setValueAt(new Cell(data[i]), row, col);
+            model.setValueAt(new Cell(data[i], i), row, col);
         }
 
         table.setModel(model);

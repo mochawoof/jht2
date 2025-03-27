@@ -1,9 +1,11 @@
 class Cell {
     public byte b;
-    public Cell(byte by) {
+    public int i;
+    public Cell(byte by, int in) {
         b = by;
+        i = in;
     }
     public String toString() {
-        return Decimal.toHex((int) b);
+        return String.format("%02X", ((int) b) & 0xff);
     }
 }
