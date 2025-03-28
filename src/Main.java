@@ -17,6 +17,7 @@ class Main {
 
     public static JPopupMenu popupMenu;
     public static JMenuItem addRowItem;
+    public static JMenuItem removeRowItem;
     public static JMenuItem deleteItem;
 
     public static MouseAdapter popupAdapter;
@@ -78,14 +79,21 @@ class Main {
             }
         });
         popupMenu.add(addRowItem);
+        removeRowItem = new JMenuItem("Remove Row");
+        removeRowItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                model.setRowCount(model.getRowCount() - 1);
+            }
+        });
+        popupMenu.add(removeRowItem);
         deleteItem = new JMenuItem("Delete");
         deleteItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int[] selectedRows = table.getSelectedRows();
                 int[] selectedCols = table.getSelectedColumns();
 
-                for (int r = selectedRows[0]; r <= selectedRows[selectedRows.length - 1]; r++) {
-                    for (int c = selectedCols[0]; c <= selectedCols[selectedCols.length - 1]; c++) {
+                for (int r = selectedRows[0]; r < selectedRows[selectedRows.length - 1] + 1; r++) {
+                    for (int c = selectedCols[0]; c < selectedCols[selectedCols.length - 1] + 1; c++) {
                         table.setValueAt("", r, c);
                     }
                 }
