@@ -8,10 +8,10 @@ import java.awt.event.*;
 class Main {
     public static JFrame f;
     public static JSplitPane split;
-    public static HexEditor area;
-    public static JPanel editPanel;
-    public static JScrollPane areaScrollPane;
-    public static JScrollPane editPanelScrollPane;
+    public static HexEditor editor;
+    public static JPanel panel;
+    public static JScrollPane editorScrollPane;
+    public static JScrollPane panelScrollPane;
     public static JToolBar toolBar;
     public static JButton fileButton;
     public static JButton reloadButton;
@@ -40,12 +40,12 @@ class Main {
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
         split.setDividerLocation(600);
         f.add(split, BorderLayout.CENTER);
-        area = new HexEditor();
-        areaScrollPane = new JScrollPane(area);
-        split.setLeftComponent(areaScrollPane);
-        editPanel = new JPanel();
-        editPanelScrollPane = new JScrollPane(editPanel);
-        split.setRightComponent(editPanelScrollPane);
+        editor = new HexEditor();
+        editorScrollPane = new JScrollPane(editor);
+        split.setLeftComponent(editorScrollPane);
+        panel = new JPanel();
+        panelScrollPane = new JScrollPane(panel);
+        split.setRightComponent(panelScrollPane);
 
         toolBar = new JToolBar();
         f.add(toolBar, BorderLayout.PAGE_START);
@@ -71,5 +71,18 @@ class Main {
         toolBar.add(modeBox);
 
         f.setVisible(true);
+
+        openFile = new File("icon800.png");
+        loadFromDisk();
+    }
+
+    public static void loadFromDisk() {
+        try {
+            editor.bytes = Files.readAllBytes(openFile.toPath());
+            fileButton.setText(openFile.getName() + " (" + editor.bytes.length + ")");
+            editor.repaint();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
