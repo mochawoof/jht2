@@ -10,7 +10,7 @@ class Main {
     public static JSplitPane split;
     public static HexEditor editor;
     public static JPanel panel;
-    public static JScrollPane editorScrollPane;
+    public static HexEditorScroller editorScroller;
     public static JScrollPane panelScrollPane;
     public static JToolBar toolBar;
     public static JButton fileButton;
@@ -41,8 +41,8 @@ class Main {
         split.setDividerLocation(600);
         f.add(split, BorderLayout.CENTER);
         editor = new HexEditor();
-        editorScrollPane = new JScrollPane(editor);
-        split.setLeftComponent(editorScrollPane);
+        editorScroller = new HexEditorScroller(editor);
+        split.setLeftComponent(editorScroller);
         panel = new JPanel();
         panelScrollPane = new JScrollPane(panel);
         split.setRightComponent(panelScrollPane);
@@ -72,14 +72,14 @@ class Main {
 
         f.setVisible(true);
 
-        openFile = new File("icon800.png");
+        openFile = new File("icon64.png");
         loadFromDisk();
     }
 
     public static void loadFromDisk() {
         try {
-            editor.bytes = Files.readAllBytes(openFile.toPath());
-            fileButton.setText(openFile.getName() + " (" + editor.bytes.length + ")");
+            editor.setBytes(Files.readAllBytes(openFile.toPath()));
+            fileButton.setText(openFile.getName() + " (" + editor.bytes.length + "b)");
             editor.repaint();
         } catch (Exception e) {
             e.printStackTrace();

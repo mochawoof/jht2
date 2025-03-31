@@ -1,8 +1,33 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 
 class HexEditor extends JComponent {
     public byte[] bytes;
+    public JScrollBar scrollBar;
+    public int bytesPerRow = 16;
+    public String mode = "Hex Mode";
+
+    public void setBytes(byte[] bs) {
+        bytes = bs;
+        scrollBar.setMaximum((int) Math.ceil((double) bytes.length / bytesPerRow));
+        scrollBar.setValue(0);
+    }
+    
+    public void setScrollBar(JScrollBar sb) {
+        scrollBar = sb;
+        scrollBar.addAdjustmentListener(new AdjustmentListener() {
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                repaint();
+            }
+        });
+        addMouseWheelListener(new MouseWheelListener() {
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                scrollBar.setValue(scrollBar.getValue() + (e.getWheelRotation() * 2));
+            }
+        });
+    }
+
     public void paintComponent(Graphics g) {
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, getWidth(), getHeight());
@@ -11,15 +36,19 @@ class HexEditor extends JComponent {
         g.setFont(new Font("monospace", Font.PLAIN, fontSize));
         g.setColor(Color.BLACK);
 
-        for (int i = 0; i < bytes.length; i++) {
-            int row = i / 16;
-            int col = i - (row * 16);
+        for (int i = 0; i + (scrollBar.getValue() * bytesPerRow) < bytes.length; i++) {
+            int row = i / bytesPerRow;
+            int col = i - (row * bytesPerRow);
 
-            if (row * fontSize < getHeight()) {
-                g.drawChars(String.format("%02X", bytes[i] & 0xff).toCharArray(), 0, 2, col * (fontSize * 2), row * fontSize);
-            } else {
-                break;
+            String str = "";
+            int index = i + (scrollBar.getValue() * bytesPerRow);
+            if (mode.equals("Hex Mode")) {
+                str = String.format("%02X", bytes[index] & 0xff);
+            } else if (mode.equals("Text Mode")) {
+                str = new String(Character.toChars(bytes[index]));
             }
+
+            g.drawChars(str.toCharArray(), 0, 2, col * (fontSize * 2), (row * fontSize) + fontSize);
         }
     }
 }
