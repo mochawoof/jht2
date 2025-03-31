@@ -67,12 +67,18 @@ class Main {
         toolBar.add(recentBox);
 
         modeBox = new JComboBox(new String[] {"Hex Mode", "Text Mode"});
+        modeBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                editor.mode = (String) modeBox.getSelectedItem();
+                editor.repaint();
+            }
+        });
         modeBox.setMaximumSize(new Dimension(200, 100));
         toolBar.add(modeBox);
 
         f.setVisible(true);
 
-        openFile = new File("icon64.png");
+        openFile = new File("asciitable.bin");
         loadFromDisk();
     }
 

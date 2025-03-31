@@ -45,10 +45,10 @@ class HexEditor extends JComponent {
             if (mode.equals("Hex Mode")) {
                 str = String.format("%02X", bytes[index] & 0xff);
             } else if (mode.equals("Text Mode")) {
-                str = new String(Character.toChars(bytes[index]));
+                str = new String(Character.toChars(bytes[index] & 0xff));
             }
 
-            g.drawChars(str.toCharArray(), 0, 2, col * (fontSize * 2), (row * fontSize) + fontSize);
+            g.drawChars(str.toCharArray(), 0, str.length(), col * (fontSize * 2), (row * fontSize) + fontSize);
         }
     }
 }
