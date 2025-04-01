@@ -97,7 +97,7 @@ class Main {
                 }
             }
         });
-        recentBox.setPreferredSize(new Dimension(100, (int) recentBox.getPreferredSize().getHeight()));
+        //
         toolBar.add(recentBox);
 
         reloadButton = new JButton("Reload");
@@ -137,7 +137,7 @@ class Main {
                 editor.repaint();
             }
         });
-        modeBox.setPreferredSize(new Dimension(100, (int) recentBox.getPreferredSize().getHeight()));
+        //
         toolBar.add(modeBox);
 
         loadFromDisk();
